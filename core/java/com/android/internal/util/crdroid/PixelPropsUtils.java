@@ -36,6 +36,12 @@ public class PixelPropsUtils {
     private static final String PACKAGE_AIAI = "com.google.android.apps.miphone.aiai.AiaiApplication";
     private static final boolean DEBUG = false;
 
+    private static final String SPOOF_PIXEL_GAPPS = "persist.sys.pixelprops.gapps";
+    private static final String SPOOF_PIXEL_GMS = "persist.sys.pixelprops.gms";
+    private static final String SPOOF_PIXEL_GAMES = "persist.sys.pixelprops.games";
+    private static final String SPOOF_PIXEL_GPHOTOS = "persist.sys.pixelprops.gphotos";
+    private static final String SPOOF_PIXEL_NETFLIX = "persist.sys.pixelprops.netflix";
+
     private static final Map<String, Object> propsToChangeGeneric;
     private static final Map<String, Object> propsToChangePixel5;
     private static final Map<String, Object> propsToChangePixel8Pro;
@@ -234,6 +240,9 @@ public class PixelPropsUtils {
         if (packageName.startsWith("com.google.")
                 || Arrays.asList(extraPackagesToChange).contains(packageName)) {
 
+            if (!SystemProperties.getBoolean(SPOOF_PIXEL_GAPPS, true))
+                return;
+
             if (Arrays.asList(packagesToKeep).contains(packageName) ||
                     packageName.startsWith("com.google.android.GoogleCamera")) {
                 return;
@@ -242,16 +251,17 @@ public class PixelPropsUtils {
             Map<String, Object> propsToChange = new HashMap<>();
 
             if (packageName.equals("com.google.android.apps.photos")) {
-                if (SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true)) {
+                if (SystemProperties.getBoolean(SPOOF_PIXEL_GPHOTOS, true)) {
                     propsToChange.putAll(propsToChangePixelXL);
                 } else {
                     propsToChange.putAll(propsToChangePixel5);
                 }
             } else if (packageName.equals("com.netflix.mediaclient") && 
-                        !SystemProperties.getBoolean("persist.sys.pixelprops.netflix", false)) {
+                        !SystemProperties.getBoolean(SPOOF_PIXEL_NETFLIX, false)) {
                     if (DEBUG) Log.d(TAG, "Netflix spoofing disabled by system prop");
                     return;
-            } else if (packageName.equals("com.android.vending")) {
+            } else if (packageName.equals("com.android.vending") &&
+                    SystemProperties.getBoolean(SPOOF_PIXEL_GMS, true)) {
                 sIsFinsky = true;
                 return;
             } else {
@@ -275,7 +285,8 @@ public class PixelPropsUtils {
                 if (DEBUG) Log.d(TAG, "Defining " + key + " prop for: " + packageName);
                 setPropValue(key, value);
             }
-            if (packageName.equals("com.google.android.gms")) {
+            if (packageName.equals("com.google.android.gms") &&
+                    SystemProperties.getBoolean(SPOOF_PIXEL_GMS, true)) {
                 setPropValue("TIME", System.currentTimeMillis());
                 final String processName = Application.getProcessName();
                 if (processName.toLowerCase().contains("unstable")
@@ -291,7 +302,7 @@ public class PixelPropsUtils {
             }
         } else {
 
-            if (!SystemProperties.getBoolean("persist.sys.pixelprops.games", false))
+            if (!SystemProperties.getBoolean(SPOOF_PIXEL_GAMES, false))
                 return;
 
             if (Arrays.asList(packagesToChangeROG6).contains(packageName)) {
