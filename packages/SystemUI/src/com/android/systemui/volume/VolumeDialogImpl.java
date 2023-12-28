@@ -454,10 +454,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
     @Override
     public void onUiModeChanged() {
         mContext.getTheme().applyStyle(mContext.getThemeResId(), true);
-        if (mDialog != null) {
-            mDialog.dismiss();
-            mDialog = null;
-        }
     }
 
     public void init(int windowType, Callback callback) {
@@ -590,13 +586,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
 
     private void initDialog(int lockTaskModeState) {
         Log.d(TAG, "initDialog: called!");
-        if (mDialog != null) {
-            mDialog.dismiss();
-            mDialog = null;
-        }
-        if (mConfigurableTexts != null) {
-            mConfigurableTexts = null;
-        }
         mDialog = new CustomDialog(mContext);
         initDimens();
         adjustPositionOnScreen();
@@ -1791,7 +1780,7 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
         mHandler.removeMessages(H.DISMISS);
         rescheduleTimeoutH();
 
-        if (mDialog == null) {
+        if (mConfigChanged) {
             initDialog(lockTaskModeState); // resets mShowing to false
             mConfigurableTexts.update();
             mConfigChanged = false;
@@ -1905,7 +1894,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
                     if (mDialog != null) {
                         mDialog.dismiss();
                     }
-                    mDialog = null;
                     tryToRemoveCaptionsTooltip();
                     mExpanded = false;
                     if (mExpandRows != null) {
@@ -2818,11 +2806,8 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
 
         @Override
         public void onConfigurationChanged() {
-            if (mDialog != null) {
-                mDialog.dismiss();
-                mDialog = null;
-                mConfigChanged = true;
-            }
+            mDialog.dismiss();
+            mConfigChanged = true;
         }
 
         @Override
